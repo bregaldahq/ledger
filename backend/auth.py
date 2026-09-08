@@ -37,7 +37,25 @@ def _carregar_env() -> None:
 _carregar_env()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "").strip()
+# Suporta tanto a nomenclatura nova do Supabase (Publishable Key) quanto a clássica (Anon Key)
+SUPABASE_PUBLISHABLE_KEY = (
+    os.getenv("SUPABASE_PUBLISHABLE_KEY")
+    or os.getenv("SUPABASE_PUBLISHED_KEY")
+    or os.getenv("SUPABASE_PUBLISHED")
+    or os.getenv("SUPABASE_ANON_KEY")
+    or ""
+).strip()
+
+# Suporta Secret Key / Client Secret / Service Role Key
+SUPABASE_SECRET_KEY = (
+    os.getenv("SUPABASE_SECRET_KEY")
+    or os.getenv("SUPABASE_CLIENT_SECRET")
+    or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or ""
+).strip()
+
+# Chave de acesso à API de autenticação do Supabase (prefere publishable/anon, ou secret)
+SUPABASE_ANON_KEY = SUPABASE_PUBLISHABLE_KEY or SUPABASE_SECRET_KEY
 ALLOWED_EMAILS_RAW = os.getenv("ALLOWED_EMAILS", "").strip()
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
 

@@ -26,17 +26,19 @@ Por diretriz fundamental de arquitetura e privacidade:
 
 ### 2.2 Obter as Chaves de Conexão da API
 1. No menu lateral esquerdo do painel, clique em **Project Settings** (ícone de engrenagem) e depois em **API**.
-2. Na seção **Project API keys**, localize:
-   - **Project URL**: algo como `https://[id-do-projeto].supabase.co`
-   - **anon / public key**: chave pública de formato JWT (começa com `eyJ...`)
+2. Na seção **API** (ou **API Keys**), localize:
+   - **Project URL**: `https://[id-do-projeto].supabase.co`
+   - **Publishable Key (ou anon key)**: Chave pública/published (`sb_publishable_...` ou `eyJ...`)
+   - **Secret Key (ou service_role / client secret)**: Chave secreta de servidor (`sb_secret_...` ou `eyJ...`)
 3. **Atenção (Arquitetura BFF - Zero Keys no Frontend):**
-   Essas variáveis residem **exclusivamente nas variáveis de ambiente do Backend Python** (`backend/.env` ou painel do Render/Fly.io):
+   Ambas as chaves residem **exclusivamente nas variáveis de ambiente do Backend Python** (no painel do Render/Fly.io ou no arquivo `backend/.env`). O frontend **nunca recebe nem armazena nenhuma chave**:
    ```env
    SUPABASE_URL=https://[id-do-projeto].supabase.co
-   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # (ou SUPABASE_ANON_KEY)
+   SUPABASE_SECRET_KEY=sb_secret_...             # (ou SUPABASE_CLIENT_SECRET)
    ALLOWED_EMAILS=mae@dominio.com.br,ricardo@bregalda.com.br
    ```
-   O frontend **não possui nenhuma chave ou URL do Supabase**, mantendo o bundle 100% blindado contra vazamentos.
+   > 💡 O backend reconhece automaticamente tanto os nomes modernos (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`) quanto os legados (`SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
 
 ---
 
