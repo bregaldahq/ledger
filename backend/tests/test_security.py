@@ -173,3 +173,12 @@ def test_producao_sem_supabase_falha_fechado(monkeypatch):
     )
     assert res_me.status_code == 500
 
+
+def test_sanitizacao_supabase_url():
+    """Garante que sufixos como /rest/v1 ou /auth/v1 sejam removidos da SUPABASE_URL."""
+    assert auth._sanitizar_supabase_url("https://xyz.supabase.co/rest/v1") == "https://xyz.supabase.co"
+    assert auth._sanitizar_supabase_url("https://xyz.supabase.co/rest/v1/") == "https://xyz.supabase.co"
+    assert auth._sanitizar_supabase_url("https://xyz.supabase.co/auth/v1") == "https://xyz.supabase.co"
+    assert auth._sanitizar_supabase_url("https://xyz.supabase.co") == "https://xyz.supabase.co"
+    assert auth._sanitizar_supabase_url("https://custom.api.com/v1") == "https://custom.api.com"
+

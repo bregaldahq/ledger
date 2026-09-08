@@ -36,7 +36,25 @@ def _carregar_env() -> None:
 
 _carregar_env()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+def _sanitizar_supabase_url(url_raw: str) -> str:
+    """Normaliza a URL do Supabase removendo sufixos como /rest/v1 ou /auth/v1."""
+    url = (url_raw or "").strip().rstrip("/")
+    if not url:
+        return ""
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    if parsed.scheme and parsed.netloc:
+        if "supabase.co" in parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+        path = parsed.path.rstrip("/")
+        for sufixo in ("/rest/v1", "/auth/v1", "/rest", "/auth", "/v1"):
+            if path.endswith(sufixo):
+                path = path[:-len(sufixo)].rstrip("/")
+        return f"{parsed.scheme}://{parsed.netloc}{path}"
+    return url
+
+
+SUPABASE_URL = _sanitizar_supabase_url(os.getenv("SUPABASE_URL", ""))
 # Suporta tanto a nomenclatura nova do Supabase (Publishable Key) quanto a clássica (Anon Key)
 SUPABASE_PUBLISHABLE_KEY = (
     os.getenv("SUPABASE_PUBLISHABLE_KEY")
