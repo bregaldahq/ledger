@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conferidor de Razão</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="capa">
+  <div class="capa__linha">
+    <div>
+      <p class="capa__eyebrow">Livro Razão · conferência de pagamentos</p>
+      <h1 class="capa__titulo" id="empresa">—</h1>
+      <p class="capa__dados">
+        <span id="cnpj"></span>
+        <span id="periodo"></span>
+      </p>
+    </div>
+    <label class="seletor">
+      <span class="seletor__rotulo">Planilha</span>
+      <select id="arquivo"></select>
+    </label>
+  </div>
+  <p class="capa__conta" id="conta"></p>
+</header>
+
+<main class="folha" id="folha" aria-busy="true">
+
+  <p class="aviso" id="aviso" hidden></p>
+
+  <section class="resumo" aria-labelledby="resumo-titulo">
+    <h2 class="resumo__titulo" id="resumo-titulo">
+      Do que foi adquirido no mês, quanto já foi pago
+    </h2>
+
+    <div class="medidor">
+      <div class="medidor__trilho">
+        <div class="medidor__grifo" id="medidor-grifo"></div>
+      </div>
+      <p class="medidor__valor"><strong id="cobertura">—</strong> do valor adquirido tem pagamento de mesmo valor no mês</p>
+      <p class="medidor__nota" id="nota"></p>
+    </div>
+
+    <dl class="numeros">
+      <div class="numeros__item">
+        <dt>Adquirido (crédito)</dt>
+        <dd id="n-credito">—</dd>
+        <p id="q-credito"></p>
+      </div>
+      <div class="numeros__item numeros__item--grifo">
+        <dt>Quitado</dt>
+        <dd id="n-quitado">—</dd>
+        <p id="q-quitado"></p>
+      </div>
+      <div class="numeros__item numeros__item--lapis">
+        <dt>Em aberto</dt>
+        <dd id="n-aberto">—</dd>
+        <p id="q-aberto"></p>
+      </div>
+      <div class="numeros__item numeros__item--azul">
+        <dt>Pago sem origem no mês (débito)</dt>
+        <dd id="n-sempar">—</dd>
+        <p id="q-sempar"></p>
+      </div>
+    </dl>
+  </section>
+
+  <section class="controles" aria-label="Filtros da tabela">
+    <div class="filtros" role="group" id="filtros">
+      <button type="button" class="filtro filtro--ativo" data-filtro="todos">Tudo</button>
+      <button type="button" class="filtro" data-filtro="quitado">Grifados</button>
+      <button type="button" class="filtro" data-filtro="aberto">Em aberto</button>
+      <button type="button" class="filtro" data-filtro="sem_par">Sem par</button>
+    </div>
+
+    <label class="busca">
+      <span class="visualmente-oculto">Buscar</span>
+      <input type="search" id="busca" placeholder="histórico, valor, conta ou data" autocomplete="off">
+    </label>
+
+    <p class="legenda">
+      <span class="legenda__item"><b class="amostra amostra--grifo">grifo</b> pago</span>
+      <span class="legenda__item"><b class="amostra amostra--lapis">lápis</b> em aberto</span>
+      <span class="legenda__item"><b class="amostra amostra--azul">lápis</b> sem par</span>
+    </p>
+
+    <button type="button" class="baixar" id="baixar">Baixar CSV</button>
+  </section>
+
+  <div class="rolagem">
+    <table class="razao">
+      <thead>
+        <tr>
+          <th class="c-data">Data</th>
+          <th class="c-hist">Histórico</th>
+          <th class="c-part">Cta.C.Part.</th>
+          <th class="c-num">Débito</th>
+          <th class="c-num">Crédito</th>
+          <th class="c-num c-saldo">Saldo</th>
+        </tr>
+      </thead>
+      <tbody id="corpo"></tbody>
+    </table>
+    <p class="vazio" id="vazio" hidden>Nenhum lançamento com esse filtro.</p>
+  </div>
+</main>
+
+<aside class="amarracao" id="amarracao" hidden aria-live="polite">
+  <div class="amarracao__conteudo">
+    <span class="amarracao__selo" id="am-selo">—</span>
+    <div class="amarracao__lado">
+      <p class="amarracao__rotulo">Adquirido</p>
+      <p class="amarracao__hist" id="am-credito-hist">—</p>
+      <p class="amarracao__meta"><span id="am-credito-data"></span> · <b id="am-credito-valor"></b></p>
+    </div>
+    <div class="amarracao__meio">
+      <div class="amarracao__elo" id="am-elo">quitado</div>
+      <div class="amarracao__conferencia" id="am-conferencia"></div>
+    </div>
+    <div class="amarracao__lado">
+      <p class="amarracao__rotulo">Pago</p>
+      <p class="amarracao__hist" id="am-debito-hist">—</p>
+      <p class="amarracao__meta"><span id="am-debito-data"></span> · <b id="am-debito-valor"></b></p>
+    </div>
+    <button type="button" class="amarracao__fechar" id="am-fechar" aria-label="Fechar amarração">✕</button>
+  </div>
+</aside>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

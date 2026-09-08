@@ -1,0 +1,48 @@
+name: Relatório de Inconsistência Contábil / Bug
+description: Relatar um erro de processamento de planilha, cálculo ou comportamento inesperado no Ledger.
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por relatar um problema no **Ledger**.
+        Lembre-se: **NUNCA** anexe planilhas reais de clientes com dados fiscais sensíveis ou sigilosos.
+  - type: dropdown
+    id: modulo
+    attributes:
+      label: Módulo do Sistema
+      description: Em qual módulo do Ledger ocorreu o problema?
+      options:
+        - "Conferidor de Razão (Amarração Débito x Crédito)"
+        - "Leitura de Arquivo (.xls / .xlsx)"
+        - "Exportação de Excel (.xlsx colorido)"
+        - "Autenticação & Sessão (BFF)"
+        - "Interface / Bregalda Design System"
+    validations:
+      required: true
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição do Problema
+      description: O que aconteceu e o que era esperado acontecer?
+      placeholder: "Ao processar o razão com múltiplos lançamentos do mesmo valor..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Passos para Reprodução
+      description: Como reproduzir o problema?
+      placeholder: |
+        1. Fazer upload do arquivo no formato .xls
+        2. Observar a linha do lançamento #12
+        3. Constatar que...
+    validations:
+      required: true
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente de Teste
+      description: Navegador, Sistema Operacional ou Sistema Contábil emissor da planilha (ex: Domínio, Totvs, Questor).
+      placeholder: "Chrome 128 / Windows 11 / Planilha gerada pelo Domínio Sistemas"

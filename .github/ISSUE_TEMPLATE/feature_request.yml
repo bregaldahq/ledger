@@ -1,0 +1,31 @@
+name: Proposta de Nova Ferramenta / Módulo
+description: Sugerir um novo módulo contábil, financeiro ou melhoria para a suíte Ledger.
+title: "[FEATURE]: "
+labels: ["enhancement", "modulo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        O **Ledger** é uma suíte modular para problemas contábeis reais. Sugira novas rotinas e ferramentas!
+  - type: input
+    id: titulo-modulo
+    attributes:
+      label: Nome Sugerido para o Módulo
+      placeholder: "Ex: Conciliador de Extrato Bancário (OFX)"
+    validations:
+      required: true
+  - type: textarea
+    id: problema-resolvido
+    attributes:
+      label: Qual problema operacional essa ferramenta resolve?
+      description: Descreva o atrito contábil ou financeiro que os profissionais enfrentam manualmente.
+      placeholder: "Hoje para conciliar o extrato bancário com a conta contábil do banco..."
+    validations:
+      required: true
+  - type: textarea
+    id: solucao-proposta
+    attributes:
+      label: Como você imagina o funcionamento no Ledger?
+      description: Formato de entrada (arquivo, API), regras de cálculo e formato de exportação.
+    validations:
+      required: true
