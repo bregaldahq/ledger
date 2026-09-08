@@ -42,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
           <img
-            src="/brand/icone_bregalda.svg"
+            src="./brand/icone_bregalda.svg"
             alt="Bregalda"
             style={{
               width: '32px',

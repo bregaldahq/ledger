@@ -4,14 +4,15 @@
 
 **Suíte contábil e financeira de alta precisão desenvolvida por Bregalda.**
 
-[![CI - Testes, Qualidade & Segurança](https://github.com/bregaldahq/ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/bregaldahq/ledger/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/bregaldahq/ledger/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/bregaldahq/ledger/actions/workflows/ci-cd.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-22C55E.svg?logo=github)](https://bregaldahq.github.io/ledger/)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.2-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Zero-Storage](https://img.shields.io/badge/Privacidade-Zero--Storage%20(RAM)-22C55E.svg)](#-política-estrita-de-zero-storage)
-[![Domínio](https://img.shields.io/badge/Ambiente-ledger.bregalda.com-4B2E83.svg)](https://ledger.bregalda.com)
+[![Domínio](https://img.shields.io/badge/Produção-ledger.bregalda.com-4B2E83.svg)](https://ledger.bregalda.com)
 
 <p align="center">
   <em>Ferramentas ponderadas para problemas técnicos reais.</em>

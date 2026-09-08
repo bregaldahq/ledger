@@ -112,7 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               }}
             >
               <img
-                src="/brand/icone_bregalda.svg"
+                src="./brand/icone_bregalda.svg"
                 alt="Bregalda"
                 style={{ width: '38px', height: '38px', borderRadius: '6px' }}
               />
