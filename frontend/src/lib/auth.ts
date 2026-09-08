@@ -111,12 +111,26 @@ export async function login(
     });
 
     if (!res.ok) {
-      let detalhe = 'E-mail ou senha incorretos.';
+      let detalhe = '';
       try {
         const errJson = await res.json();
         if (errJson?.detail) detalhe = errJson.detail;
       } catch {
         // fallback
+      }
+
+      if (!detalhe) {
+        if (res.status === 401) {
+          detalhe = 'E-mail ou senha incorretos. Verifique suas credenciais.';
+        } else if (res.status === 404) {
+          detalhe = 'Servidor da API não encontrado (404). Verifique se o backend está ativo e configurado na variável VITE_API_URL.';
+        } else if (res.status === 500) {
+          detalhe = 'Erro interno no backend (500). Verifique as variáveis do Supabase (URL e chaves) no Render.';
+        } else if (res.status === 502 || res.status === 503) {
+          detalhe = 'O servidor backend está iniciando ou temporariamente em suspensão (502/503). Aguarde cerca de 30 segundos.';
+        } else {
+          detalhe = `Falha na autenticação (código HTTP ${res.status}).`;
+        }
       }
       return { usuario: null, erro: detalhe };
     }
@@ -137,9 +151,10 @@ export async function login(
     return { usuario, erro: null };
   } catch (err) {
     console.error('Falha de rede ao tentar autenticar:', err);
+    const destino = API_BASE || (typeof window !== 'undefined' ? window.location.origin : '');
     return {
       usuario: null,
-      erro: 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet.',
+      erro: `Não foi possível conectar à API (${destino || 'URL não configurada'}). Verifique se o backend está ativo no Render.`,
     };
   }
 }

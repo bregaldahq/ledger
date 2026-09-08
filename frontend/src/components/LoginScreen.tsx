@@ -11,8 +11,8 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
 }) => {
-  const [email, setEmail] = useState('ricardo@bregalda.com.br');
-  const [senha, setSenha] = useState('bregalda2026');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
