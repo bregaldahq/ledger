@@ -107,9 +107,30 @@ async def autenticar_credenciais(email_raw: str, password_raw: str) -> dict[str,
             )
 
         if res.status_code != 200:
+            detalhe = "E-mail ou senha incorretos. Por favor, verifique suas credenciais."
+            try:
+                err_data = res.json()
+                msg_supabase = (
+                    err_data.get("error_description")
+                    or err_data.get("msg")
+                    or err_data.get("message")
+                    or err_data.get("error")
+                )
+                if msg_supabase:
+                    if "Email not confirmed" in msg_supabase:
+                        detalhe = "E-mail não confirmado no Supabase. No painel do Supabase, marque a opção 'Auto Confirm' ou confirme o e-mail do usuário."
+                    elif "Invalid API key" in msg_supabase or "apikey" in msg_supabase.lower():
+                        detalhe = f"Chave de API do Supabase incorreta no Render ({msg_supabase}). Verifique a variável SUPABASE_PUBLISHABLE_KEY."
+                    elif "Invalid login credentials" in msg_supabase:
+                        detalhe = "Credenciais inválidas no Supabase (verifique se o e-mail ou a senha digitada correspondem ao cadastro no Supabase)."
+                    else:
+                        detalhe = f"Supabase recusou autenticação: {msg_supabase} (HTTP {res.status_code})"
+            except Exception:
+                pass
+
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="E-mail ou senha incorretos. Por favor, verifique suas credenciais.",
+                detail=detalhe,
             )
 
         data = res.json()
@@ -124,14 +145,6 @@ async def autenticar_credenciais(email_raw: str, password_raw: str) -> dict[str,
 
         user_email = (user.get("email") or email).strip().lower()
         nome = user.get("user_metadata", {}).get("nome") or user_email.split("@")[0]
-        return {
-            "usuario": {
-                "id": user.get("id", "user"),
-                "email": user_email,
-                "nome": nome,
-            },
-            "token": access_token,
-        }
         return {
             "usuario": {
                 "id": user.get("id", "user"),
