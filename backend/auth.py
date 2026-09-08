@@ -56,10 +56,9 @@ SUPABASE_SECRET_KEY = (
 
 # Chave de acesso à API de autenticação do Supabase (prefere publishable/anon, ou secret)
 SUPABASE_ANON_KEY = SUPABASE_PUBLISHABLE_KEY or SUPABASE_SECRET_KEY
-ALLOWED_EMAILS_RAW = os.getenv("ALLOWED_EMAILS", "").strip()
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development").strip().lower()
 
-# Usuários pré-cadastrados para acesso imediato
+# Usuários pré-cadastrados para acesso imediato em ambiente local
 USUARIOS_PREDEFINIDOS: dict[str, dict[str, Any]] = {
     "ricardo@bregalda.com.br": {
         "senhas": ["bregalda2026", "123456"],
@@ -74,17 +73,10 @@ USUARIOS_PREDEFINIDOS: dict[str, dict[str, Any]] = {
 }
 
 
-def obter_emails_autorizados() -> list[str]:
-    """Retorna lista em minúsculas dos e-mails autorizados, se configurados."""
-    if not ALLOWED_EMAILS_RAW:
-        return []
-    return [e.strip().lower() for e in ALLOWED_EMAILS_RAW.split(",") if e.strip()]
-
-
 async def autenticar_credenciais(email_raw: str, password_raw: str) -> dict[str, Any]:
     """Autentica as credenciais com o Supabase Auth no backend (ou modo local dev).
 
-    Valida contra whitelist de e-mails autorizados (ALLOWED_EMAILS).
+    O acesso é controlado diretamente pelos logins cadastrados no Supabase Auth.
     Retorna {"usuario": {"id": ..., "email": ..., "nome": ...}, "token": ...}.
     """
     email = (email_raw or "").strip().lower()
@@ -96,15 +88,7 @@ async def autenticar_credenciais(email_raw: str, password_raw: str) -> dict[str,
             detail="Por favor, informe seu e-mail e sua senha de acesso.",
         )
 
-    # 1. Validação prévia de whitelist
-    emails_autorizados = obter_emails_autorizados()
-    if emails_autorizados and email not in emails_autorizados:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso negado: este e-mail não possui permissão para acessar este projeto.",
-        )
-
-    # 2. Autenticação via Supabase Auth (quando configurado no servidor)
+    # 1. Autenticação via Supabase Auth (quando configurado no servidor)
     if SUPABASE_URL and SUPABASE_ANON_KEY:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
@@ -139,25 +123,15 @@ async def autenticar_credenciais(email_raw: str, password_raw: str) -> dict[str,
             )
 
         user_email = (user.get("email") or email).strip().lower()
-        if emails_autorizados and user_email not in emails_autorizados:
-            # Revoga token imediatamente
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    await client.post(
-                        f"{SUPABASE_URL}/auth/v1/logout",
-                        headers={
-                            "Authorization": f"Bearer {access_token}",
-                            "apikey": SUPABASE_ANON_KEY,
-                        },
-                    )
-            except Exception:
-                pass
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Acesso negado: seu usuário não possui autorização para este projeto.",
-            )
-
         nome = user.get("user_metadata", {}).get("nome") or user_email.split("@")[0]
+        return {
+            "usuario": {
+                "id": user.get("id", "user"),
+                "email": user_email,
+                "nome": nome,
+            },
+            "token": access_token,
+        }
         return {
             "usuario": {
                 "id": user.get("id", "user"),
@@ -261,15 +235,6 @@ async def validar_usuario_autorizado(
 
         user_data = res.json()
         email = (user_data.get("email") or "").strip().lower()
-
-        # Validação de Whitelist (se configurada)
-        emails_autorizados = obter_emails_autorizados()
-        if emails_autorizados and email not in emails_autorizados:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Acesso negado: seu usuário não possui autorização para este projeto contábil.",
-            )
-
         nome = user_data.get("user_metadata", {}).get("nome") or email.split("@")[0]
         return {
             "id": user_data.get("id", "user"),
@@ -287,12 +252,6 @@ async def validar_usuario_autorizado(
     # Em ambiente de desenvolvimento local, aceita tokens dev seguros gerados no login
     if token.startswith("dev-token-"):
         email = token.replace("dev-token-", "").strip().lower()
-        emails_autorizados = obter_emails_autorizados()
-        if emails_autorizados and email not in emails_autorizados:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Acesso negado: seu usuário não possui autorização para este projeto contábil.",
-            )
         info_pre = USUARIOS_PREDEFINIDOS.get(email)
         if info_pre:
             return {"id": info_pre["id"], "email": email, "nome": info_pre["nome"]}

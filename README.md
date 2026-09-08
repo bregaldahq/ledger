@@ -92,7 +92,7 @@ A privacidade dos dados financeiros é um pilar intransponível:
 1. **Zero Armazenamento Contábil**: Nenhuma planilha enviada, nenhum lançamento e nenhum CNPJ é gravado em disco ou persistido em banco de dados. O processamento ocorre exclusivamente na memória volátil (RAM) e é liberado ao término da resposta HTTP.
 2. **Padrão BFF (Zero Keys no Frontend)**: O pacote `@supabase/supabase-js` e quaisquer chaves de provedores foram 100% eliminados do cliente web. Todo o fluxo de autenticação é intermediado pelo servidor FastAPI (`/api/auth/*`).
 3. **Fail-Closed em Produção**: Caso as variáveis de autenticação não estejam configuradas em produção, a API recusa conexões com erro 500/401, impedindo qualquer modo de teste aberto na nuvem.
-4. **Whitelist de E-mails**: Acesso restrito via variável de ambiente `ALLOWED_EMAILS`. Usuários não autorizados recebem HTTP 403 Forbidden antes de qualquer emissão de token.
+4. **Acesso Controlado no Provedor**: O acesso é concedido diretamente para os usuários cadastrados e ativados no Supabase Auth, sem necessidade de sincronizar whitelists manuais no servidor.
 
 ---
 

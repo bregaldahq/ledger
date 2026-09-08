@@ -36,7 +36,6 @@ Por diretriz fundamental de arquitetura e privacidade:
    SUPABASE_URL=https://[id-do-projeto].supabase.co
    SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # (ou SUPABASE_ANON_KEY)
    SUPABASE_SECRET_KEY=sb_secret_...             # (ou SUPABASE_CLIENT_SECRET)
-   ALLOWED_EMAILS=mae@dominio.com.br,ricardo@bregalda.com.br
    ```
    > 💡 O backend reconhece automaticamente tanto os nomes modernos (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`) quanto os legados (`SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
 
@@ -72,14 +71,11 @@ Para restringir o sistema apenas aos usuários autorizados (evitando que terceir
 2. **Desativar Confirmação Obrigatória de E-mail**:
    - Ainda em **Authentication** > **Providers** > **Email**.
    - Desmarque **"Confirm email"**.
-   - Isso evita problemas caso o serviço gratuito de e-mails transacionais do Supabase atinja limites ou caia na caixa de spam.
+   - Isso evita problemas caso o serviço de e-mails atinja limites ou caia na caixa de spam.
 
-3. **Whitelist de E-mails Autorizados (`ALLOWED_EMAILS`)**:
-   - Configure no seu arquivo `.env` do backend a lista de e-mails autorizados separados por vírgula:
-     ```env
-     ALLOWED_EMAILS=mae@dominio.com.br,ricardo@bregalda.com.br
-     ```
-   - Qualquer tentativa de login com um e-mail fora desta lista será sumariamente recusada pelo backend com HTTP 403 Forbidden antes de emitir qualquer token de acesso.
+3. **Controle Direto de Acesso por Usuário**:
+   - Não é necessário configurar listas manuais ou variáveis de e-mails no servidor (`ALLOWED_EMAILS`).
+   - O acesso é concedido de forma dinâmica para **qualquer usuário que você cadastrar no painel do Supabase** (Authentication > Users). Se o e-mail não existir ou a senha estiver incorreta, o login é imediatamente negado pelo backend.
 
 ---
 

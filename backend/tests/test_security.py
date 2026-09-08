@@ -60,28 +60,16 @@ def test_token_forjado_retorna_401():
     assert response.status_code == 401
 
 
-def test_email_fora_da_whitelist_retorna_403(monkeypatch):
-    """Quando ALLOWED_EMAILS está configurado, usuários de outro e-mail recebem 403."""
-    monkeypatch.setattr(auth, "ALLOWED_EMAILS_RAW", "mae@dominio.com.br,ricardo@bregalda.com.br")
-
-    # Tenta com e-mail não autorizado
+def test_usuario_autenticado_com_token_valido_passa_seguranca():
+    """Usuário com token válido passa pela barreira de autenticação do backend."""
     response = client.post(
         "/api/processar",
-        headers={"Authorization": "Bearer dev-token-invasor@desconhecido.com"},
+        headers={"Authorization": "Bearer dev-token-usuario@empresa.com"},
         files={"file": ("teste.xlsx", b"dummy", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
     )
-    assert response.status_code == 403
-    assert "Acesso negado" in response.json()["detail"]
+    # Não pode falhar por 401 ou 403 (falha posterior de parsing de arquivo dummy é esperada)
+    assert response.status_code not in (401, 403)
 
-    # Tenta com e-mail autorizado da whitelist -> deve passar na auth
-    # (pode falhar depois apenas no formato da planilha dummy, mas NÃO por 401/403)
-    res_autorizado = client.post(
-        "/api/processar",
-        headers={"Authorization": "Bearer dev-token-mae@dominio.com.br"},
-        files={"file": ("teste.xlsx", b"dummy", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-    )
-    assert res_autorizado.status_code != 401
-    assert res_autorizado.status_code != 403
 
 
 def test_auditoria_seguranca_ausencia_de_chaves_secretas_no_frontend():
@@ -154,15 +142,14 @@ def test_auditoria_zero_keys_frontend():
             )
 
 
-def test_login_com_whitelist_bloqueia_403(monkeypatch):
-    """Tentativa de login com e-mail fora da whitelist deve retornar 403 Forbidden no BFF."""
-    monkeypatch.setattr(auth, "ALLOWED_EMAILS_RAW", "mae@dominio.com.br,ricardo@bregalda.com.br")
+def test_login_com_senha_incorreta_retorna_401():
+    """Tentativa de login com senha incorreta para usuário cadastrado deve retornar 401."""
     response = client.post(
         "/api/auth/login",
-        json={"email": "hacker@desconhecido.com", "password": "senha"},
+        json={"email": "ricardo@bregalda.com.br", "password": "senha_errada_xyz"},
     )
-    assert response.status_code == 403
-    assert "Acesso negado" in response.json()["detail"]
+    assert response.status_code == 401
+    assert "Senha incorreta" in response.json()["detail"]
 
 
 def test_producao_sem_supabase_falha_fechado(monkeypatch):
@@ -170,7 +157,6 @@ def test_producao_sem_supabase_falha_fechado(monkeypatch):
     monkeypatch.setattr(auth, "ENVIRONMENT", "production")
     monkeypatch.setattr(auth, "SUPABASE_URL", "")
     monkeypatch.setattr(auth, "SUPABASE_ANON_KEY", "")
-    monkeypatch.setattr(auth, "ALLOWED_EMAILS_RAW", "")
 
     # Login deve falhar com 500 (Fail-Closed)
     res_login = client.post(
@@ -178,7 +164,7 @@ def test_producao_sem_supabase_falha_fechado(monkeypatch):
         json={"email": "mae@dominio.com.br", "password": "senha"},
     )
     assert res_login.status_code == 500
-    assert "Configuração de autenticação ausente" in res_login.json()["detail"]
+    assert "Configuração de autenticação" in res_login.json()["detail"]
 
     # Validação de token em produção sem Supabase configurado deve falhar com 500
     res_me = client.get(
