@@ -11,6 +11,7 @@ import {
   HelpCircle,
   ChevronDown,
   Filter,
+  Clock,
 } from 'lucide-react';
 
 interface ControlsBarProps {
@@ -26,6 +27,7 @@ interface ControlsBarProps {
   contagemQuitados: number;
   contagemAbertos: number;
   contagemSemPar: number;
+  contagemPendentes?: number;
 }
 
 export const ControlsBar: React.FC<ControlsBarProps> = ({
@@ -41,7 +43,9 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   contagemQuitados,
   contagemAbertos,
   contagemSemPar,
+  contagemPendentes,
 }) => {
+  const totalPendentes = contagemPendentes !== undefined ? contagemPendentes : (contagemAbertos + contagemSemPar);
   const [menuExcelAberto, setMenuExcelAberto] = useState(false);
   const menuExcelRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +116,40 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
             }}
           >
             Todos ({totalLancamentos})
+          </button>
+
+          {/* Botão Pendentes (União: Em Aberto + Sem Par) */}
+          <button
+            type="button"
+            onClick={() => onSelectFiltro('pendentes')}
+            style={{
+              padding: '0.45rem 0.85rem',
+              borderRadius: 'var(--radius-control)',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: filtroAtual === 'pendentes' ? 'var(--amber)' : 'var(--amber-subtle)',
+              color: filtroAtual === 'pendentes' ? '#FFFFFF' : 'var(--amber-text)',
+              border: `1px solid ${filtroAtual === 'pendentes' ? 'var(--amber)' : 'var(--amber-border)'}`,
+              transition: 'all 0.15s ease',
+            }}
+            title="Todos os lançamentos pendentes de resolução (Em Aberto + Sem Par)"
+          >
+            <Clock size={13} />
+            <span>Pendentes</span>
+            <span
+              className="font-mono tabular-nums"
+              style={{
+                fontSize: '0.75rem',
+                backgroundColor: filtroAtual === 'pendentes' ? 'rgba(255,255,255,0.25)' : 'rgba(245,158,11,0.18)',
+                padding: '0.1rem 0.35rem',
+                borderRadius: '3px',
+              }}
+            >
+              {totalPendentes}
+            </span>
           </button>
 
           {/* Botão Quitados (Grifados) */}

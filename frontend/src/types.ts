@@ -86,7 +86,7 @@ export interface RazaoData {
   resumo: Resumo;
 }
 
-export type FiltroStatus = 'todos' | 'conciliado' | 'aberto' | 'sem_par';
+export type FiltroStatus = 'todos' | 'pendentes' | 'conciliado' | 'aberto' | 'sem_par';
 
 export interface Usuario {
   id: string;

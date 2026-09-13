@@ -220,7 +220,11 @@ export default function App() {
     const buscaNorm = termoBusca.trim().toLowerCase();
 
     return dados.lancamentos.filter((lanc) => {
-      if (filtroAtual !== 'todos' && lanc.status !== filtroAtual) {
+      if (filtroAtual === 'pendentes') {
+        if (lanc.status !== 'aberto' && lanc.status !== 'sem_par') {
+          return false;
+        }
+      } else if (filtroAtual !== 'todos' && lanc.status !== filtroAtual) {
         return false;
       }
       if (buscaNorm) {
@@ -342,6 +346,7 @@ export default function App() {
               contagemQuitados={dados.resumo.quitados.qtd}
               contagemAbertos={dados.resumo.abertos.qtd}
               contagemSemPar={dados.resumo.sem_par.qtd}
+              contagemPendentes={dados.resumo.abertos.qtd + dados.resumo.sem_par.qtd}
             />
 
             {/* Tabela do Razão Contábil com Realces */}

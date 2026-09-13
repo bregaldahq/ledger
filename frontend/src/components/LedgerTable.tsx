@@ -37,7 +37,11 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({
   // Função para verificar se um lançamento atende ao filtro e busca
   const matchLancamento = (lanc: Lancamento): boolean => {
     // Filtro de status
-    if (filtro !== 'todos' && lanc.status !== filtro) {
+    if (filtro === 'pendentes') {
+      if (lanc.status !== 'aberto' && lanc.status !== 'sem_par') {
+        return false;
+      }
+    } else if (filtro !== 'todos' && lanc.status !== filtro) {
       return false;
     }
 
@@ -341,7 +345,16 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({
                 const lCredito = linhaLanc.credito !== null ? mapaLancamentos.get(linhaLanc.credito) : null;
 
                 // Determina o status dominante para coloração e destaque
-                const lancAtivo = lCredito || lDebito;
+                let lancAtivo = lCredito || lDebito;
+                if (lDebito && lCredito) {
+                  if (filtro === 'pendentes') {
+                    if (lDebito.status === 'aberto' || lDebito.status === 'sem_par') lancAtivo = lDebito;
+                    else if (lCredito.status === 'aberto' || lCredito.status === 'sem_par') lancAtivo = lCredito;
+                  } else if (filtro !== 'todos') {
+                    if (lDebito.status === filtro) lancAtivo = lDebito;
+                    else if (lCredito.status === filtro) lancAtivo = lCredito;
+                  }
+                }
                 const status = lancAtivo?.status || 'aberto';
                 const isConciliado = status === 'conciliado';
                 const isAberto = status === 'aberto';
