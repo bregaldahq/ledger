@@ -393,3 +393,31 @@ def test_exportacao_xlsx_apenas_pendentes():
     assert any("Sem par no mês" in t for t in textos)
 
 
+def test_exportacao_xlsx_quando_todos_quitados():
+    # Planilha onde 100% dos lançamentos são quitados
+    razao_dict = {
+        "empresa": "EMPRESA CONCILIADA 100%",
+        "conta": "1.1.01",
+        "lancamentos": [
+            {"id": 1, "tipo": "C", "valor": 50000, "status": "quitado", "data": "2026-07-01", "historico": "COMPRA 1"},
+            {"id": 2, "tipo": "D", "valor": 50000, "status": "quitado", "data": "2026-07-02", "historico": "PAGTO 1"},
+        ],
+        "linhas": [
+            {"tipo": "conta", "codigo": "1.1.01", "nome": "FORNECEDORES"},
+            {"tipo": "lancamento", "debito": None, "credito": 1},
+            {"tipo": "lancamento", "debito": 2, "credito": None},
+            {"tipo": "total", "debito": 50000, "credito": 50000},
+        ],
+    }
+
+    bytes_res = gerar_xlsx_colorido(razao_dict, apenas_pendentes=True)
+    wb = openpyxl.load_workbook(io.BytesIO(bytes_res))
+    ws = wb.active
+
+    textos = [str(cell.value) for row in ws.iter_rows() for cell in row if cell.value]
+    assert any("Nenhuma pendência encontrada" in t for t in textos)
+    assert not any("COMPRA 1" in t for t in textos)
+    assert not any("PAGTO 1" in t for t in textos)
+
+
+

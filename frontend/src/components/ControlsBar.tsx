@@ -51,9 +51,16 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
         setMenuExcelAberto(false);
       }
     }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMenuExcelAberto(false);
+      }
+    }
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
   return (
@@ -372,6 +379,8 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
                 type="button"
                 onClick={() => setMenuExcelAberto(!menuExcelAberto)}
                 disabled={isExportingExcel}
+                aria-haspopup="menu"
+                aria-expanded={menuExcelAberto}
                 className="btn-primary"
                 style={{
                   padding: '0.45rem 0.55rem',
@@ -397,16 +406,19 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
             {/* Menu Suspenso */}
             {menuExcelAberto && (
               <div
+                role="menu"
+                aria-label="Opções de exportação Excel"
                 style={{
                   position: 'absolute',
                   right: 0,
-                  bottom: 'calc(100% + 6px)',
+                  top: 'calc(100% + 6px)',
                   zIndex: 60,
                   backgroundColor: 'var(--bg-surface)',
                   border: '1px solid var(--border-strong)',
                   borderRadius: 'var(--radius-card)',
                   boxShadow: '0 12px 28px -4px rgba(42, 33, 64, 0.18), 0 6px 12px -4px rgba(42, 33, 64, 0.08)',
                   minWidth: '310px',
+                  maxWidth: 'min(330px, calc(100vw - 2rem))',
                   padding: '0.45rem',
                   display: 'flex',
                   flexDirection: 'column',
@@ -429,6 +441,7 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
                 {/* Opção 1: Planilha Completa */}
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
                     setMenuExcelAberto(false);
                     onExportarExcel(false);

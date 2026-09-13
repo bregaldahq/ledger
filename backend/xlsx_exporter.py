@@ -233,6 +233,16 @@ def gerar_xlsx_colorido(razao_dict: dict, apenas_pendentes: bool = False) -> byt
                 },
             })
 
+    # Caso especial: se apenas_pendentes=True e não houver nenhuma pendência
+    if apenas_pendentes:
+        tem_lancamentos = any(e["tipo"] in ("lancamento", "lancamento_duplo") for e in linhas_para_processar)
+        if not tem_lancamentos:
+            idx_inserir = 0
+            for idx, e in enumerate(linhas_para_processar):
+                if e["tipo"] == "conta":
+                    idx_inserir = idx + 1
+            linhas_para_processar.insert(idx_inserir, {"tipo": "sem_pendencias", "item": {}})
+
     for entrada in linhas_para_processar:
         tipo = entrada["tipo"]
 
@@ -262,6 +272,15 @@ def gerar_xlsx_colorido(razao_dict: dict, apenas_pendentes: bool = False) -> byt
                 c_saldo.alignment = Alignment(horizontal="right", vertical="center")
             for c_idx in range(1, 8):
                 ws.cell(linha_atual, c_idx).border = borda_fina
+        elif tipo == "sem_pendencias":
+            ws.cell(linha_atual, 1, "")
+            c_aviso = ws.cell(linha_atual, 2, "Nenhuma pendência encontrada. Todos os lançamentos deste período foram quitados/conciliados.")
+            c_aviso.font = Font(name="Segoe UI", size=10, italic=True, bold=True, color="047857")
+            fill_vazio = PatternFill(start_color="ECFDF5", end_color="ECFDF5", fill_type="solid")
+            for c_idx in range(1, 8):
+                cel = ws.cell(linha_atual, c_idx)
+                cel.fill = fill_vazio
+                cel.border = borda_fina
             linha_atual += 1
 
         elif tipo == "total":
