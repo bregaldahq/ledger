@@ -87,22 +87,27 @@ export async function processarPlanilha(file: File): Promise<RazaoData> {
 
 /**
  * Envia os dados do Razão conciliado e retorna o Blob da planilha Excel (.xlsx) colorida.
+ * Se apenasPendentes=true, omite os registros quitados.
  */
-export async function exportarExcel(dados: RazaoData): Promise<Blob> {
+export async function exportarExcel(
+  dados: RazaoData,
+  apenasPendentes: boolean = false
+): Promise<Blob> {
   const token = await obterTokenAcesso();
   if (!token) {
     throw new SessaoExpiradaError('Acesso bloqueado: usuário não autenticado. Faça login para continuar.');
   }
 
+  const query = apenasPendentes ? '?apenas_pendentes=true' : '';
   let resposta: Response;
   try {
-    resposta = await fetch(`${API_BASE}/api/exportar-excel`, {
+    resposta = await fetch(`${API_BASE}/api/exportar-excel${query}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(dados),
+      body: JSON.stringify({ ...dados, apenas_pendentes: apenasPendentes }),
     });
   } catch (err) {
     console.error('Falha ao exportar Excel:', err);

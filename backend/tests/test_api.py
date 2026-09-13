@@ -165,6 +165,32 @@ def test_exportar_excel():
     assert ws.max_row > 5
 
 
+def test_exportar_excel_apenas_pendentes():
+    xlsx_bytes = _criar_xlsx_teste_bytes()
+    proc_response = client.post(
+        "/api/processar",
+        headers=AUTH_HEADERS,
+        files={"file": ("conferencia_teste.xlsx", xlsx_bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+    )
+    assert proc_response.status_code == 200
+    razao_dict = proc_response.json()
+
+    # Exportar apenas pendentes
+    exp_response = client.post(
+        "/api/exportar-excel?apenas_pendentes=true",
+        headers=AUTH_HEADERS,
+        json=razao_dict,
+    )
+    assert exp_response.status_code == 200
+    assert 'attachment; filename="conferencia_conferencia_teste_pendentes.xlsx"' in exp_response.headers["content-disposition"]
+    wb = openpyxl.load_workbook(io.BytesIO(exp_response.content))
+    ws = wb["Razão Conciliado"]
+    textos = [str(c.value) for r in ws.iter_rows() for c in r if c.value]
+    assert any("Apenas lançamentos pendentes" in t for t in textos)
+    assert not any("Quitado" in t for t in textos)
+
+
+
 def test_auth_login_dev_sucesso():
     response = client.post(
         "/api/auth/login",

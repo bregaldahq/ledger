@@ -91,8 +91,11 @@ def _obter_estilo_status(lancamento: dict) -> tuple[str, PatternFill | None, Fon
     return status, None, Font(name="Segoe UI", size=10)
 
 
-def gerar_xlsx_colorido(razao_dict: dict) -> bytes:
-    """Gera uma pasta de trabalho Excel (.xlsx) colorida a partir do razão conciliado."""
+def gerar_xlsx_colorido(razao_dict: dict, apenas_pendentes: bool = False) -> bytes:
+    """Gera uma pasta de trabalho Excel (.xlsx) colorida a partir do razão conciliado.
+    
+    Se apenas_pendentes=True, omite as linhas já quitadas/conciliadas, exibindo apenas as pendências.
+    """
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Razão Conciliado"
@@ -123,6 +126,9 @@ def gerar_xlsx_colorido(razao_dict: dict) -> bytes:
             f"{razao_dict.get('conta', '')} - {razao_dict.get('conta_nome', '')}".strip(" -"),
         ),
     ]
+
+    if apenas_pendentes:
+        metadados.append(("Exibição:", "Apenas lançamentos pendentes (em aberto e sem par)"))
 
     linha_atual = 3
     for rotulo, valor in metadados:
@@ -164,6 +170,11 @@ def gerar_xlsx_colorido(razao_dict: dict) -> bytes:
     lancamentos_map = {l["id"]: l for l in lancamentos}
     linhas = razao_dict.get("linhas", [])
 
+    def _eh_quitado(l: dict | None) -> bool:
+        if not l:
+            return False
+        return str(l.get("status", "")).lower() in ("quitado", "conciliado")
+
     # Se há 'linhas' estruturadas preservadas do leitor, priorizamos o layout original
     linhas_para_processar = []
     if linhas:
@@ -172,24 +183,46 @@ def gerar_xlsx_colorido(razao_dict: dict) -> bytes:
             if tipo == "conta":
                 linhas_para_processar.append({"tipo": "conta", "item": item})
             elif tipo == "saldo_anterior":
-                linhas_para_processar.append({"tipo": "saldo_anterior", "item": item})
+                if not apenas_pendentes:
+                    linhas_para_processar.append({"tipo": "saldo_anterior", "item": item})
             elif tipo == "total":
                 linhas_para_processar.append({"tipo": "total", "item": item})
             elif tipo == "lancamento":
                 deb_id = item.get("debito")
                 cred_id = item.get("credito")
                 if deb_id is not None and cred_id is not None:
-                    # Ambas as colunas na mesma linha
-                    linhas_para_processar.append({"tipo": "lancamento_duplo", "deb": lancamentos_map.get(deb_id), "cred": lancamentos_map.get(cred_id), "item": item})
+                    l_deb = lancamentos_map.get(deb_id)
+                    l_cred = lancamentos_map.get(cred_id)
+                    if apenas_pendentes:
+                        deb_quit = _eh_quitado(l_deb)
+                        cred_quit = _eh_quitado(l_cred)
+                        if deb_quit and cred_quit:
+                            continue
+                        elif deb_quit:
+                            linhas_para_processar.append({"tipo": "lancamento", "lanc": l_cred, "item": item})
+                        elif cred_quit:
+                            linhas_para_processar.append({"tipo": "lancamento", "lanc": l_deb, "item": item})
+                        else:
+                            linhas_para_processar.append({"tipo": "lancamento_duplo", "deb": l_deb, "cred": l_cred, "item": item})
+                    else:
+                        linhas_para_processar.append({"tipo": "lancamento_duplo", "deb": l_deb, "cred": l_cred, "item": item})
                 elif deb_id is not None:
-                    linhas_para_processar.append({"tipo": "lancamento", "lanc": lancamentos_map.get(deb_id), "item": item})
+                    l_deb = lancamentos_map.get(deb_id)
+                    if apenas_pendentes and _eh_quitado(l_deb):
+                        continue
+                    linhas_para_processar.append({"tipo": "lancamento", "lanc": l_deb, "item": item})
                 elif cred_id is not None:
-                    linhas_para_processar.append({"tipo": "lancamento", "lanc": lancamentos_map.get(cred_id), "item": item})
+                    l_cred = lancamentos_map.get(cred_id)
+                    if apenas_pendentes and _eh_quitado(l_cred):
+                        continue
+                    linhas_para_processar.append({"tipo": "lancamento", "lanc": l_cred, "item": item})
     else:
         # Se não há 'linhas' salvas, exportamos a partir de 'saldo_anterior', 'lancamentos' e 'totais'
-        if razao_dict.get("saldo_anterior") is not None:
+        if not apenas_pendentes and razao_dict.get("saldo_anterior") is not None:
             linhas_para_processar.append({"tipo": "saldo_anterior", "item": {"saldo": razao_dict["saldo_anterior"]}})
         for l in lancamentos:
+            if apenas_pendentes and _eh_quitado(l):
+                continue
             linhas_para_processar.append({"tipo": "lancamento", "lanc": l, "item": {}})
         if razao_dict.get("total_debito") is not None or razao_dict.get("total_credito") is not None:
             linhas_para_processar.append({
@@ -233,10 +266,17 @@ def gerar_xlsx_colorido(razao_dict: dict) -> bytes:
 
         elif tipo == "total":
             item = entrada["item"]
-            deb_cents = item.get("debito")
-            cred_cents = item.get("credito")
+            if apenas_pendentes:
+                deb_cents = sum(l.get("valor", 0) for l in lancamentos if l.get("tipo") == "D" and not _eh_quitado(l))
+                cred_cents = sum(l.get("valor", 0) for l in lancamentos if l.get("tipo") == "C" and not _eh_quitado(l))
+                rotulo_total = "Total pendente"
+            else:
+                deb_cents = item.get("debito")
+                cred_cents = item.get("credito")
+                rotulo_total = "Total do mês"
+
             ws.cell(linha_atual, 1, "")
-            c_hist = ws.cell(linha_atual, 2, "Total do mês")
+            c_hist = ws.cell(linha_atual, 2, rotulo_total)
             c_hist.font = Font(name="Segoe UI", size=10, bold=True)
             if deb_cents is not None:
                 c_deb = ws.cell(linha_atual, 4, deb_cents / 100.0)

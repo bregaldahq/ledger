@@ -123,13 +123,14 @@ export default function App() {
   };
 
   // Handler de Exportação para Excel (.xlsx) Colorido
-  const handleExportarExcel = async () => {
+  const handleExportarExcel = async (apenasPendentes: boolean = false) => {
     if (!dados) return;
     setIsExportingExcel(true);
     try {
-      const blob = await exportarExcel(dados);
+      const blob = await exportarExcel(dados, apenasPendentes);
       const baseName = dados.arquivo ? dados.arquivo.replace(/\.[^/.]+$/, '') : 'razao_conferido';
-      baixarBlob(blob, `${baseName}_conferido.xlsx`);
+      const sufixo = apenasPendentes ? '_conferido_pendentes.xlsx' : '_conferido.xlsx';
+      baixarBlob(blob, `${baseName}${sufixo}`);
     } catch (err: unknown) {
       if (err instanceof SessaoExpiradaError) {
         await handleLogout();

@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { FiltroStatus } from '../types';
-import { Search, X, Download, FileSpreadsheet, FileText, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
+import {
+  Search,
+  X,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  ChevronDown,
+  Filter,
+} from 'lucide-react';
 
 interface ControlsBarProps {
   filtroAtual: FiltroStatus;
   onSelectFiltro: (filtro: FiltroStatus) => void;
   termoBusca: string;
   onBuscaChange: (termo: string) => void;
-  onExportarExcel: () => void;
+  onExportarExcel: (apenasPendentes?: boolean) => void;
   isExportingExcel: boolean;
   onExportarCsv: () => void;
   totalLancamentos: number;
@@ -31,6 +42,20 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   contagemAbertos,
   contagemSemPar,
 }) => {
+  const [menuExcelAberto, setMenuExcelAberto] = useState(false);
+  const menuExcelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuExcelRef.current && !menuExcelRef.current.contains(event.target as Node)) {
+        setMenuExcelAberto(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   return (
     <div
       style={{
@@ -289,44 +314,240 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
             <span>Baixar CSV</span>
           </button>
 
-          {/* Botão Primário em Destaque: Baixar Excel .xlsx Colorido */}
-          <button
-            type="button"
-            onClick={onExportarExcel}
-            disabled={isExportingExcel}
-            className="btn-primary"
-            style={{
-              padding: '0.45rem 1.15rem',
-              fontSize: '0.8125rem',
-              minHeight: '36px',
-              backgroundColor: 'var(--purple)',
-              boxShadow: '0 2px 8px rgba(75, 46, 131, 0.2)',
-            }}
-            title="Baixar planilha Excel (.xlsx) com linhas quitadas grifadas em amarelo idêntico à conferência"
-          >
-            {isExportingExcel ? (
-              <>
-                <span
-                  className="animate-spin"
+          {/* Botão Primário com Menu Dropdown: Baixar Excel .xlsx */}
+          <div ref={menuExcelRef} style={{ position: 'relative', display: 'inline-flex' }}>
+            {/* Split Button Container */}
+            <div
+              style={{
+                display: 'inline-flex',
+                borderRadius: 'var(--radius-control)',
+                boxShadow: '0 2px 8px rgba(75, 46, 131, 0.2)',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Ação Primária Direta: Baixar Planilha Completa */}
+              <button
+                type="button"
+                onClick={() => onExportarExcel(false)}
+                disabled={isExportingExcel}
+                className="btn-primary"
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  fontSize: '0.8125rem',
+                  minHeight: '36px',
+                  backgroundColor: 'var(--purple)',
+                  borderRadius: 0,
+                  borderRight: '1px solid rgba(255, 255, 255, 0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                }}
+                title="Baixar planilha Excel (.xlsx) com todas as linhas grifadas"
+              >
+                {isExportingExcel ? (
+                  <>
+                    <span
+                      className="animate-spin"
+                      style={{
+                        width: '13px',
+                        height: '13px',
+                        borderRadius: '50%',
+                        border: '2px solid var(--cream)',
+                        borderTopColor: 'transparent',
+                        display: 'inline-block',
+                      }}
+                    />
+                    <span>Gerando...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileSpreadsheet size={15} color="var(--yellow)" />
+                    <span style={{ fontWeight: 600 }}>Baixar Excel (.xlsx)</span>
+                  </>
+                )}
+              </button>
+
+              {/* Gatilho da Setinha: Abre Dropdown */}
+              <button
+                type="button"
+                onClick={() => setMenuExcelAberto(!menuExcelAberto)}
+                disabled={isExportingExcel}
+                className="btn-primary"
+                style={{
+                  padding: '0.45rem 0.55rem',
+                  minHeight: '36px',
+                  backgroundColor: 'var(--purple)',
+                  borderRadius: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Opções de exportação Excel"
+              >
+                <ChevronDown
+                  size={15}
                   style={{
-                    width: '13px',
-                    height: '13px',
-                    borderRadius: '50%',
-                    border: '2px solid var(--cream)',
-                    borderTopColor: 'transparent',
-                    display: 'inline-block',
+                    transform: menuExcelAberto ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.15s ease',
                   }}
                 />
-                <span>Gerando Excel...</span>
-              </>
-            ) : (
-              <>
-                <FileSpreadsheet size={15} color="var(--yellow)" />
-                <span style={{ fontWeight: 600 }}>Baixar Excel (.xlsx) Colorido</span>
-                <Download size={13} style={{ opacity: 0.8 }} />
-              </>
+              </button>
+            </div>
+
+            {/* Menu Suspenso */}
+            {menuExcelAberto && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 'calc(100% + 6px)',
+                  zIndex: 60,
+                  backgroundColor: 'var(--bg-surface)',
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--radius-card)',
+                  boxShadow: '0 12px 28px -4px rgba(42, 33, 64, 0.18), 0 6px 12px -4px rgba(42, 33, 64, 0.08)',
+                  minWidth: '310px',
+                  padding: '0.45rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '0.35rem 0.6rem 0.2rem',
+                    fontSize: '0.6875rem',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Opções de Exportação
+                </div>
+
+                {/* Opção 1: Planilha Completa */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuExcelAberto(false);
+                    onExportarExcel(false);
+                  }}
+                  disabled={isExportingExcel}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.65rem',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: 'var(--radius-control)',
+                    border: '1px solid transparent',
+                    backgroundColor: 'transparent',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-surface-subtle)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '0.35rem',
+                      borderRadius: '6px',
+                      backgroundColor: 'var(--yellow-subtle)',
+                      color: '#713F12',
+                      marginTop: '0.1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <FileSpreadsheet size={16} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--ink)' }}>
+                      Planilha Completa
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.3, marginTop: '0.1rem' }}>
+                      Todos os lançamentos com marcações em amarelo, vermelho e azul
+                    </div>
+                  </div>
+                  <Download size={14} color="var(--text-muted)" style={{ marginTop: '0.2rem' }} />
+                </button>
+
+                {/* Opção 2: Apenas Pendentes (Limpo) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuExcelAberto(false);
+                    onExportarExcel(true);
+                  }}
+                  disabled={isExportingExcel}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.65rem',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: 'var(--radius-control)',
+                    border: '1px solid transparent',
+                    backgroundColor: 'transparent',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--bg-surface-subtle)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '0.35rem',
+                      borderRadius: '6px',
+                      backgroundColor: 'var(--red-subtle)',
+                      color: 'var(--red-lapis)',
+                      marginTop: '0.1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Filter size={16} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span>Apenas Pendentes (Limpo)</span>
+                      <span
+                        style={{
+                          fontSize: '0.6875rem',
+                          fontWeight: 700,
+                          backgroundColor: 'var(--red-subtle)',
+                          color: 'var(--red-lapis)',
+                          padding: '0.1rem 0.35rem',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        NOVO
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.3, marginTop: '0.1rem' }}>
+                      Omite os registros quitados, exibindo apenas as pendências
+                    </div>
+                  </div>
+                  <Download size={14} color="var(--text-muted)" style={{ marginTop: '0.2rem' }} />
+                </button>
+              </div>
             )}
-          </button>
+          </div>
         </div>
       </div>
     </div>

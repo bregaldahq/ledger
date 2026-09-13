@@ -362,3 +362,34 @@ def test_exportacao_status_ambiguo():
     textos = [str(cell.value) for row in ws.iter_rows() for cell in row if cell.value]
     assert any("Pendente" in t for t in textos)
 
+
+def test_exportacao_xlsx_apenas_pendentes():
+    # Cria uma planilha com quitados e pendentes
+    conteudo_inicial = _criar_xlsx_exemplo_bytes()
+    razao = ler_xlsx(conteudo_inicial, "inicial.xlsx")
+    resumo = conciliar(razao)
+
+    dados = razao.como_dicionario()
+    dados["resumo"] = resumo
+
+    # Exportação filtrando apenas pendentes
+    bytes_pendentes = gerar_xlsx_colorido(dados, apenas_pendentes=True)
+    wb = openpyxl.load_workbook(io.BytesIO(bytes_pendentes))
+    ws = wb.active
+
+    textos = [str(cell.value) for row in ws.iter_rows() for cell in row if cell.value]
+
+    # Deve conter a indicação de filtro nos metadados
+    assert any("Apenas lançamentos pendentes" in t for t in textos)
+
+    # Não deve conter os lançamentos quitados ("CERVEJARIA BRASIL")
+    assert not any("CERVEJARIA BRASIL" in t for t in textos)
+    assert not any("Quitado" in t for t in textos)
+
+    # Deve conter os pendentes (em aberto e sem par)
+    assert any("DISTRIBUIDORA VALE" in t for t in textos)
+    assert any("PAGTO ANTIGO DIVERSO" in t for t in textos)
+    assert any("Em aberto" in t for t in textos)
+    assert any("Sem par no mês" in t for t in textos)
+
+

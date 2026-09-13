@@ -111,10 +111,12 @@ async def processar(
 @app.post("/api/exportar-excel")
 async def exportar_excel(
     razao_dict: dict = Body(...),
+    apenas_pendentes: bool = False,
     usuario: dict[str, Any] = Depends(validar_usuario_autorizado),
 ) -> StreamingResponse:
+    filtro_pendentes = apenas_pendentes or bool(razao_dict.get("apenas_pendentes", False))
     try:
-        bytes_xlsx = xlsx_exporter.gerar_xlsx_colorido(razao_dict)
+        bytes_xlsx = xlsx_exporter.gerar_xlsx_colorido(razao_dict, apenas_pendentes=filtro_pendentes)
     except Exception as erro:
         raise HTTPException(
             status_code=422,
@@ -130,7 +132,8 @@ async def exportar_excel(
     if not nome_limpo:
         nome_limpo = "razao"
 
-    filename = f"conferencia_{nome_limpo}.xlsx"
+    sufixo = "_pendentes" if filtro_pendentes else ""
+    filename = f"conferencia_{nome_limpo}{sufixo}.xlsx"
 
     return StreamingResponse(
         io.BytesIO(bytes_xlsx),
