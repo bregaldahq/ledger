@@ -66,7 +66,8 @@ O primeiro módulo ativo na plataforma automatiza a exaustiva conciliação de c
   * 🟨 **Quitado & Amarrado (`#FEF9C3`)**: Com anotação do par, ID da amarração e intervalo em dias.
   * 🟥 **Em Aberto (`#FEE2E2`)**: Notas fiscais pendentes de quitação no período.
   * 🟦 **Sem Par (`#DBEAFE`)**: Pagamentos bancários sem nota de origem correspondente no mês.
-* **Exportação Fiel em `.xlsx`**: Gera com 1 clique o arquivo Excel formatado com estilos, notas e formatação monetária contábil (`R$ #,##0.00`).
+* **Exportação Fiel em `.xlsx` (Completa ou Limpa)**: Gera com 1 clique o arquivo Excel formatado com estilos, notas e formatação monetária contábil (`R$ #,##0.00`). Conta com menu suspenso para exportar a planilha integral ou uma versão limpa contendo **estritamente os lançamentos pendentes**.
+* **Filtro Rápido de Pendentes**: Agrupa instantaneamente na interface web os lançamentos *Em Aberto* e *Sem Par* para agilizar a conferência do que falta pagar.
 * **Auto-Reparo de BIFF8**: Corrige silenciosamente em memória o defeito de cabeçalho comum em softwares legados ("Expected BOF record").
 
 ---
@@ -77,7 +78,7 @@ O Ledger foi desenhado para hospedar múltiplas ferramentas sob o mesmo ecossist
 
 | Módulo | Finalidade | Status |
 | :--- | :--- | :--- |
-| **Conferidor de Razão** | Amarração 1:1 de Duplicatas a Pagar (.xls e .xlsx) | ✅ **Ativo (v1.0.0)** |
+| **Conferidor de Razão** | Amarração 1:1 de Duplicatas a Pagar (.xls e .xlsx) | ✅ **Ativo (v1.1.0)** |
 | **Conciliador de Extrato (OFX)** | Cruzamento de extratos bancários contra contas do razão | ⏳ Planejado |
 | **Comparador de Balancetes** | Auditoria de divergências e saltos de saldos entre competências | ⏳ Planejado |
 | **Auditor de Retenções** | Validação de alíquotas de IRRF, PIS/COFINS, CSLL e ISS | ⏳ Planejado |
@@ -150,7 +151,7 @@ Abra o navegador em `http://localhost:5173`. A tela de login solicitará suas cr
 
 ## 🧪 Testes Automatizados & Qualidade
 
-O projeto conta com **37 testes automatizados** cobrindo leituras, conciliações cronológicas, exportações Excel e auditoria de segurança:
+O projeto conta com **41 testes automatizados** cobrindo leituras, conciliações cronológicas, exportações Excel (.xlsx completo e limpo) e auditoria de segurança:
 
 ```bash
 # Executar suíte completa do backend
